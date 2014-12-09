@@ -1,11 +1,15 @@
 shopt -s expand_aliases
 alias include='.'
 alias use='.'
+alias call='.'
 alias nc='c:/msys/nc.dll'
 run() { ARG="$@"; PARM=${PARM/$1}; DLL=${ARG/$PARM}
-		DLL="$DLL.dll"
-		DLL && return 0 || return 1
-	  }
+        DLL="$DLL.dll"
+        DLL && return 0 || return 1
+      }
 
 removeLF() { sed ':a;N;$!ba;s/\n/ /g'; }
+
+call "$decoder"
+use "$Config_File"
 			
