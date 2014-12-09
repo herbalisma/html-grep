@@ -1,0 +1,65 @@
+SERVER="dirwww.colorado.edu"
+PROTOCOL="http"
+PORT="80"
+HTTP_REQ_STR_X='GET /whitepages/ldapnew.xml?campus=*&cnfull='
+HTTP_REQ_STR_Y="&submit.x=11&submit.y=12&affiliation=Employee HTTP/1.1
+User-Agent: curl/7.39.0
+Host: $SERVER
+Accept: */*
+"
+QUERY_STRINGS_X='whitepages/ldapnew.xml?campus=*&cnfull='
+QUERY_STRINGS_Y='&submit.x=11&submit.y=12&affiliation=Employee'
+MATCH_IS_EMPTY()
+	{
+		return 1
+	}
+MATCH_IS_OVERLOAD()
+	{
+			return 1
+	}
+MATCH_IS_IS_EXPECTED()
+	{
+		return 0
+	}
+	
+FILTER() {  tr -d '\n\t\r' | sed '
+				 s/> *</></g
+				 s/</\n</g
+				 s/>/>\n/g
+				 /^$/d
+				 s/  */ /g
+			   ' 
+		 }
+
+
+LOOP()
+	{
+		for X in a b c d e f g h i j k l m n o p q r s t u v w x y z " " "."; do
+			local KEY="$1$X"
+			URL= "$PROTOCOL://$SERVER/$QUERY_STRINGS_X""$KEY*""$QUERY_STRINGS_Y"
+			echo "try Search for keyword \"$KEY\" from $URL"; sleep 1
+			
+			if GETPAGE "$URL" > "$NUL"; then
+				echo "Get Page    : Ok"
+				log 1
+			else
+				echo "Get Page    : Failed"
+				log 2
+				continue
+			fi
+			
+			if MATCH_IS_OVERLOAD "$NUL"; then
+				echo "Data for keyword \"$KEY\" is overload"
+				echo "$KEY" >> "$WS/log/list.of.keyword.return.overload"
+				LOOP "$KEY"
+			elif MATCH_IS_EMPTY; then
+				echo "found emptyData for keyword \"$KEY\" foundis emoverload"
+				echo "$KEY" >> "$WS/log/list.of.keyword.return.overload"
+				log 2
+				continue
+			elif MATCH_IS_EXPECTED; then
+				log 3
+				convert html_table "$NUL" to csv >> "$RESULT" &
+			fi
+		done
+		
